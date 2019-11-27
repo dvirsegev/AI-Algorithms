@@ -1,6 +1,7 @@
 import csv
 from ways import load_map_from_csv
 import ways.info as info
+from ways.tools import compute_distance
 import heapq
 # GLOBAL
 RESULTUSC = 'results/UCSRuns.txt'
@@ -13,6 +14,8 @@ class State:
         self.index = junction.index
         self.links = junction.links
         self.parents = None
+        self.lat = junction.lat
+        self.lon = junction.lon
 
     def __lt__(self, other):
         return TABLE_COST[self.index] < TABLE_COST[other.index]
@@ -30,10 +33,10 @@ class State:
             table_cost[node.index] = 0
         return list_neightbors
 
-
-    def write_the_cost(self, value, pathfile):
-        with open(pathfile, 'a+') as file:
-            file.write(str(value) + '\n')
+    # write into the file, could be ucs file or a_star file
+    def write_the_cost(self, cost, heuristic_cost):
+        with open(RESULTASTAR, 'a+') as file:
+            file.write(str(cost) + ', ' + str(heuristic_cost) + '\n')
 
 # load the map
 def loadData():
@@ -94,13 +97,14 @@ def find_best_path(source, target, roads,heuristic):
         # if we reach the target
         if node == end_node:
             list_of_path, cost = calculate_path_and_cost(node)
-            node.write_the_cost(cost, RESULTUSC)
+            heuristic_cost = heuirstic_function(State(roads[source]), end_node)
+            node.write_the_cost(cost,heuristic_cost)
             return list_of_path
             # return list_of_path, cost
         for s in list_neighbors:
             if s not in close:
                 # calculate the cost
-                new_cost = TABLE_COST[s.index] + calculate(node, s) + heuristic(s,target)
+                new_cost = TABLE_COST[node.index] + calculate(node, s) + heuristic(s,end_node)
                 # if we already been there
                 if s in open:
                     old_node = open[open.index(s)]
@@ -119,20 +123,35 @@ def find_best_path(source, target, roads,heuristic):
     return None
 
 # solve the 100 problems in ucs algorithm
-def solve_the_problems_ucs():
+def solve_the_problems_ucs(source, target):
+    roads, lines = load_information()
+    for line in lines:
+        source = int(line[0])
+        target = int(line[1])
+        # the lambda function is just 0 because we don't user heuricstic function,
+        # it's just for generic code.
+        find_best_path(source, target, roads, lambda source,target: 0)
+
+def load_information():
     fp = open(PROBLEMS)
     reader = csv.reader(fp)
     lines = list(reader)
     roads = loadData()
+    return roads,lines
+
+def heuirstic_function(s,target):
+    max_speed = 0
+    for speed in info.SPEED_RANGES:
+        if max(speed) > max_speed:
+            max_speed = max(speed)
+    speed_range_road = max_speed
+    result = compute_distance(s.lat,s.lon,target.lat,target.lon) * 1000 / speed_range_road
+    return result
+
+def solve_the_problems_a_star(source, target):
+    roads,lines = load_information()
     for line in lines:
         source = int(line[0])
         target = int(line[1])
-        find_best_path(source, target, roads, lambda source,target: 0)
+        find_best_path (source,target,roads,heuirstic_function)
 
-
-
-
-
-def a_star(source,target,heuiristic):
-    roads = loadData()
-    find_best_path (source,target,roads,heuiristic)

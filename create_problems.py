@@ -1,7 +1,7 @@
 from ways import load_map_from_csv
 import random
 import csv
-LIMIT = random.randint(10,20)
+LIMIT = random.randint(10,30)
 ROUND = 100
 PROBLEM = "problems.csv"
 # mission 3 in part 1

@@ -7,8 +7,7 @@ def find_ucs_rout(source, target):
 
 
 def find_astar_route(source, target):
-    'call function to find path, and return list of indices'
-    raise NotImplementedError
+    search.solve_the_problems_a_star(source, target)
 
 
 def find_idastar_route(source, target):
