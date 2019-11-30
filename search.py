@@ -3,12 +3,17 @@ from ways import load_map_from_csv
 import ways.info as info
 from ways.tools import compute_distance
 import heapq
+import math
 # GLOBAL
 RESULTUSC = 'results/UCSRuns.txt'
 RESULTASTAR= 'results/AStarRuns.txt'
+RESULTIDA= 'results/IDAStar.txt'
 PROBLEMS = "problems.csv"
+new_limit = math.inf
 TABLE_COST = {}
+new_limit = math.inf
 
+# This class represent the Junction.
 class State:
     def __init__(self, junction):
         self.index = junction.index
@@ -20,22 +25,20 @@ class State:
     def __lt__(self, other):
         return TABLE_COST[self.index] < TABLE_COST[other.index]
 
-    def __eq__(self, other):
-        return self.index == other.index
 
     # return all the neighbors of the node- type NODE
-    def get_neightbors(self, roads, table_cost):
+    def get_neightbors(self, roads):
         list_neightbors = []
         for link in self.links:
             # set new state of each row
             node = State(roads[getattr(link,"target")])
             list_neightbors.append(node)
-            table_cost[node.index] = 0
+            TABLE_COST[node.index] = 0
         return list_neightbors
 
     # write into the file, could be ucs file or a_star file
     def write_the_cost(self, cost, heuristic_cost):
-        with open(RESULTASTAR, 'a+') as file:
+        with open(RESULTIDA, 'a+') as file:
             file.write(str(cost) + ', ' + str(heuristic_cost) + '\n')
 
 # load the map
@@ -56,6 +59,7 @@ def calculate(father, son):
         print("error")
     speed_range_road = info.SPEED_RANGES[linkAB.highway_type]
     return linkAB.distance / max(speed_range_road)
+
 
 def sum_cost(cost,node,parent):
     return cost + calculate(parent,node)
@@ -85,7 +89,7 @@ def find_best_path(source, target, roads,heuristic):
     node = State(roads[source])
     end_node = State(roads[target])
     open = []
-    close = []
+    close = set()
     # change open to min heap
     heapq.heappush(open, node)
     TABLE_COST[node.index] = 0
@@ -93,16 +97,16 @@ def find_best_path(source, target, roads,heuristic):
         node = heapq.heappop(open)
         # get the neighbors of node
         list_neighbors = node.get_neightbors(roads, TABLE_COST)
-        close.append(node)
+        close.add(node.index)
         # if we reach the target
-        if node == end_node:
+        if node.index == end_node.index:
             list_of_path, cost = calculate_path_and_cost(node)
             heuristic_cost = heuirstic_function(State(roads[source]), end_node)
             node.write_the_cost(cost,heuristic_cost)
             return list_of_path
             # return list_of_path, cost
         for s in list_neighbors:
-            if s not in close:
+            if s.index not in close:
                 # calculate the cost
                 new_cost = TABLE_COST[node.index] + calculate(node, s) + heuristic(s,end_node)
                 # if we already been there
@@ -122,7 +126,8 @@ def find_best_path(source, target, roads,heuristic):
                      heapq.heappush(open, s)
     return None
 
-# solve the 100 problems in ucs algorithm
+
+# solve the  problem in ucs algorithm ( also was to write the result on the file)
 def solve_the_problems_ucs(source, target):
     roads, lines = load_information()
     for line in lines:
@@ -132,6 +137,7 @@ def solve_the_problems_ucs(source, target):
         # it's just for generic code.
         find_best_path(source, target, roads, lambda source,target: 0)
 
+# General function to read the problems and load the roads.
 def load_information():
     fp = open(PROBLEMS)
     reader = csv.reader(fp)
@@ -139,6 +145,7 @@ def load_information():
     roads = loadData()
     return roads,lines
 
+# This belong to A* Algorithm!
 def heuirstic_function(s,target):
     max_speed = 0
     for speed in info.SPEED_RANGES:
@@ -148,6 +155,7 @@ def heuirstic_function(s,target):
     result = compute_distance(s.lat,s.lon,target.lat,target.lon) * 1000 / speed_range_road
     return result
 
+# solve the  problem in a* algorithm ( also was to write the result on the file)
 def solve_the_problems_a_star(source, target):
     roads,lines = load_information()
     for line in lines:
@@ -155,3 +163,46 @@ def solve_the_problems_a_star(source, target):
         target = int(line[1])
         find_best_path (source,target,roads,heuirstic_function)
 
+
+
+
+def dfs_f(node, target, f_limit, path, g_function_result,roads):
+   global new_limit
+   new_f = g_function_result + heuirstic_function(node,target)
+   if new_f > f_limit:
+       new_limit = min(new_limit,new_f)
+       return None
+   if node.index == target.index:
+       if path[0] != node.junction_idx and len(path) < 2:
+           path.append(target.index)
+       return path ,g
+   for c in node.get_neightbors(roads):
+       path.append(c.index)
+       cost = calculate(node, c)
+       sol = dfs_f(c,target,f_limit, path,  g_function_result + cost ,roads)
+   if(sol):
+     return sol
+   path.remove(c.index)
+   return None
+
+
+def ida_algorithm(source, target, roads):
+    global new_limit
+    start = State(roads[source])
+    end = State(roads[target])
+    while(1):
+        f_limit = heuirstic_function(start,end)
+        g_function = 0
+        path = []
+        sol = dfs_f(start,end,f_limit,path,g_function,roads)
+        start.write_the_cost(sol[1], heuirstic_function(source,target))
+        return sol[0]
+
+
+
+def solve_the_problems_idastar(source, target):
+    roads, lines = load_information()
+    for line in lines:
+        source = int(line[0])
+        target = int(line[1])
+        ida_algorithm(source, target, roads)

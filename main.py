@@ -3,7 +3,7 @@ import search
 def find_ucs_rout(source, target):
     'call function to find path, and return list of indices'
     #return search.find_ucs_rout(source,target)
-    search.solve_the_problems_ucs()
+    search.solve_the_problems_ucs(source,target)
 
 
 def find_astar_route(source, target):
@@ -11,8 +11,7 @@ def find_astar_route(source, target):
 
 
 def find_idastar_route(source, target):
-    'call function to find path, and return list of indices'
-    raise NotImplementedError
+    search.solve_the_problems_idastar(source, target)
     
 
 def dispatch(argv):
