@@ -175,7 +175,7 @@ def dfs_f(node, target, f_limit, path, g_function_result,roads):
    if node.index == target.index:
        if path[0] != node.junction_idx and len(path) < 2:
            path.append(target.index)
-       return path ,g
+       return path ,g_function_result
    for c in node.get_neightbors(roads):
        path.append(c.index)
        cost = calculate(node, c)
@@ -187,16 +187,17 @@ def dfs_f(node, target, f_limit, path, g_function_result,roads):
 
 
 def ida_algorithm(source, target, roads):
-    global new_limit
     start = State(roads[source])
     end = State(roads[target])
+    global new_limit
     while(1):
-        f_limit = heuirstic_function(start,end)
+        new_limit = heuirstic_function(start,end)
         g_function = 0
         path = []
-        sol = dfs_f(start,end,f_limit,path,g_function,roads)
-        start.write_the_cost(sol[1], heuirstic_function(source,target))
-        return sol[0]
+        sol = dfs_f(start,end,new_limit ,path,g_function,roads)
+        if sol is not None:
+            start.write_the_cost(sol[1], heuirstic_function(source,target))
+            return sol[0]
 
 
 
@@ -206,3 +207,6 @@ def solve_the_problems_idastar(source, target):
         source = int(line[0])
         target = int(line[1])
         ida_algorithm(source, target, roads)
+
+if __name__ == '__main__':
+    solve_the_problems_idastar(None,None)
