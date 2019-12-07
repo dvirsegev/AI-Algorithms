@@ -3,7 +3,8 @@
 # `pip` for pip-installable libraries. `dir` otherwise
 # example line:
 pip matplotlib
-
+pip math
+pip heapq
 #another example:
 #dir aima
 

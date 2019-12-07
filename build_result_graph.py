@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from ways import load_map_from_csv
 from ways.draw import plot_path
 
-RESULTASTAR= 'results/result.txt'
+RESULTASTAR = 'results/AStarRuns.txt'
+RESULTIDASTAR = 'result.txt'
 # width = 0.125
 # l = help.generate_lists('results/AStarRuns.txt')
 # for i in range(4):
@@ -15,10 +16,10 @@ RESULTASTAR= 'results/result.txt'
 #         plt.show()
 
 def build_real_vs_heuristic(real_result,heuristic_result):
-    plt.plot(real_result, heuristic_result, 'ro')
+    plt.plot(heuristic_result, real_result, 'ro')
     plt.title('Real vs Heuristic')
-    plt.xlabel('Real Cost')
-    plt.ylabel('Heuristic Cost')
+    plt.xlabel('heuristic_result')
+    plt.ylabel('Real Cost')
     plt.show()
 
 def build_path(lines,roads):
@@ -29,9 +30,18 @@ def build_path(lines,roads):
         plot_path(roads,line)
 
 def createlist():
-    file = open(RESULTASTAR,"r")
+    #file = open(RESULTASTAR,"r")
+    file = open(RESULTIDASTAR, "r")
     lines = file.readlines()
     roads = load_map_from_csv()
+    # real_result = []
+    # heuristic_result = []
+    # for line in lines:
+    #     line = line.strip("\n")
+    #     line = line.split(",")
+    #     real_result.append(float(line[0]))
+    #     heuristic_result.append(float(line[1]))
+    # build_real_vs_heuristic(real_result,heuristic_result)
     build_path(lines,roads)
 
 

@@ -4,7 +4,9 @@ import ways.info as info
 from ways.tools import compute_distance
 import heapq
 import math
-import random
+from ways import tools
+
+#import random
 # GLOBAL
 RESULTUSC = 'results/UCSRuns.txt'
 RESULTASTAR= 'results/AStarRuns.txt'
@@ -84,7 +86,8 @@ def calculate_path_and_cost(node):
 
 
 
-  # implement of ucs + astar algorithrms!!
+# implement of ucs + astar algorithrms!!
+# @tools.timed
 def find_best_path(source, target, roads,heuristic):
     #class of node
     node = State(roads[source])
@@ -138,7 +141,7 @@ def solve_the_problems_ucs(source, target):
     #     target = int(line[1])
         # the lambda function is just 0 because we don't user heuricstic function,
         # it's just for generic code.
-    find_best_path(source, target, roads, lambda source,target: 0)
+    return find_best_path(source, target, roads, lambda source,target: 0)
 
 # General function to read the problems and load the roads.
 def load_information():
@@ -159,6 +162,7 @@ def heuirstic_function(s,target):
     return result
 
 # solve the  problem in a* algorithm ( also was to write the result on the file)
+
 def solve_the_problems_a_star(source, target):
     roads,lines = load_information()
     return find_best_path (source,target,roads,heuirstic_function)
@@ -176,7 +180,7 @@ def solve_the_problems_a_star(source, target):
 
 
 
-
+# use of idastart algorithm!
 def dfs_f(node, target, f_limit, path, g_function_result,roads):
    global new_limit
    new_f = g_function_result + heuirstic_function(node,target)
@@ -197,7 +201,8 @@ def dfs_f(node, target, f_limit, path, g_function_result,roads):
        path.remove(c.index)
    return None
 
-
+#@tools.timed
+#implement of ida* algorithm!!
 def ida_algorithm(source, target, roads):
     global new_limit
     start = State(roads[source])
@@ -219,7 +224,7 @@ def solve_the_problems_idastar(source, target):
     roads, lines = load_information()
     # This is for writing and testing!
 
-    # top5 = lines[7:8]
+    # top5 = lines[3:8]
     # for line in top5:
     #     source =  int(line[0])
     #     target =  int(line[1])
