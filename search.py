@@ -4,14 +4,14 @@ import ways.info as info
 from ways.tools import compute_distance
 import heapq
 import math
+import random
 # GLOBAL
 RESULTUSC = 'results/UCSRuns.txt'
 RESULTASTAR= 'results/AStarRuns.txt'
 RESULTIDA= 'results/IDAStar.txt'
 PROBLEMS = "problems.csv"
-new_limit = math.inf
 TABLE_COST = {}
-new_limit = math.inf
+new_limit = 0
 
 # This class represent the Junction.
 class State:
@@ -47,6 +47,7 @@ def loadData():
 
 
 # compute travel speed between the nodeA and nodeB
+
 def calculate(father, son):
     links = father.links
     # find the link between node A and node B
@@ -83,7 +84,7 @@ def calculate_path_and_cost(node):
 
 
 
-  # implement of ucs algorithrm!!
+  # implement of ucs + astar algorithrms!!
 def find_best_path(source, target, roads,heuristic):
     #class of node
     node = State(roads[source])
@@ -96,13 +97,13 @@ def find_best_path(source, target, roads,heuristic):
     while len(open) != 0:
         node = heapq.heappop(open)
         # get the neighbors of node
-        list_neighbors = node.get_neightbors(roads, TABLE_COST)
+        list_neighbors = node.get_neightbors(roads)
         close.add(node.index)
         # if we reach the target
         if node.index == end_node.index:
             list_of_path, cost = calculate_path_and_cost(node)
             heuristic_cost = heuirstic_function(State(roads[source]), end_node)
-            node.write_the_cost(cost,heuristic_cost)
+            # node.write_the_cost(cost,heuristic_cost)
             return list_of_path
             # return list_of_path, cost
         for s in list_neighbors:
@@ -130,12 +131,14 @@ def find_best_path(source, target, roads,heuristic):
 # solve the  problem in ucs algorithm ( also was to write the result on the file)
 def solve_the_problems_ucs(source, target):
     roads, lines = load_information()
-    for line in lines:
-        source = int(line[0])
-        target = int(line[1])
+    # This is for writing and testing!
+
+    # for line in lines:
+    #     source = int(line[0])
+    #     target = int(line[1])
         # the lambda function is just 0 because we don't user heuricstic function,
         # it's just for generic code.
-        find_best_path(source, target, roads, lambda source,target: 0)
+    find_best_path(source, target, roads, lambda source,target: 0)
 
 # General function to read the problems and load the roads.
 def load_information():
@@ -152,16 +155,24 @@ def heuirstic_function(s,target):
         if max(speed) > max_speed:
             max_speed = max(speed)
     speed_range_road = max_speed
-    result = compute_distance(s.lat,s.lon,target.lat,target.lon) * 1000 / speed_range_road
+    result = 1000 * compute_distance(s.lat,s.lon,target.lat,target.lon)  / speed_range_road
     return result
 
 # solve the  problem in a* algorithm ( also was to write the result on the file)
 def solve_the_problems_a_star(source, target):
     roads,lines = load_information()
-    for line in lines:
-        source = int(line[0])
-        target = int(line[1])
-        find_best_path (source,target,roads,heuirstic_function)
+    return find_best_path (source,target,roads,heuirstic_function)
+
+    # This is for writing and testing!
+    # result = []
+    # for i in range(1):
+    #     line = random.choice(lines)
+    #     source = int(line[0])
+    #     target = int(line[1])
+    #     result.append(find_best_path(source, target, roads, heuirstic_function))
+    # with open('result.txt', 'w+') as f:
+    #     for item in result:
+    #         f.write(item)
 
 
 
@@ -173,40 +184,43 @@ def dfs_f(node, target, f_limit, path, g_function_result,roads):
        new_limit = min(new_limit,new_f)
        return None
    if node.index == target.index:
-       if path[0] != node.junction_idx and len(path) < 2:
+       if path[0] != node.index and len(path) < 2:
            path.append(target.index)
        return path ,g_function_result
    for c in node.get_neightbors(roads):
        path.append(c.index)
        cost = calculate(node, c)
-       sol = dfs_f(c,target,f_limit, path,  g_function_result + cost ,roads)
-   if(sol):
-     return sol
-   path.remove(c.index)
+       final_cost =  g_function_result + cost
+       sol = dfs_f(c,target,f_limit, path,  final_cost ,roads)
+       if(sol):
+          return sol
+       path.remove(c.index)
    return None
 
 
 def ida_algorithm(source, target, roads):
+    global new_limit
     start = State(roads[source])
     end = State(roads[target])
-    global new_limit
+    new_limit = heuirstic_function(start, end)
     while(1):
-        new_limit = heuirstic_function(start,end)
+        f_limit = new_limit
+        new_limit = math.inf
         g_function = 0
-        path = []
-        sol = dfs_f(start,end,new_limit ,path,g_function,roads)
-        if sol is not None:
-            start.write_the_cost(sol[1], heuirstic_function(source,target))
+        path = [start.index]
+        sol = dfs_f(start,end,f_limit ,path,g_function,roads)
+        if sol:
+            #start.write_the_cost(sol[1], heuirstic_function(start,end))
             return sol[0]
 
 
 
 def solve_the_problems_idastar(source, target):
     roads, lines = load_information()
-    for line in lines:
-        source = int(line[0])
-        target = int(line[1])
-        ida_algorithm(source, target, roads)
+    # This is for writing and testing!
 
-if __name__ == '__main__':
-    solve_the_problems_idastar(None,None)
+    # top5 = lines[7:8]
+    # for line in top5:
+    #     source =  int(line[0])
+    #     target =  int(line[1])
+    return ida_algorithm(source, target, roads)
